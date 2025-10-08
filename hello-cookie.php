@@ -7,7 +7,7 @@
  * Requires PHP: 8.0
  * Author: Ondřej Musil
  * Author URI: https://musiltech.com
- * License: GPL v3 or later
+ * License: GPL v2 or later
  * Text Domain: hellocookie
  * Domain Path: /languages
  */
