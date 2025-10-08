@@ -15,6 +15,7 @@ class Renderer
     {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
 
+
         if (($this->settings['mode'] ?? 'direct') === 'direct') {
             if (! empty($this->settings['ga4_id'])) {
                 add_action('wp_head', [$this, 'render_gcm_defaults'], 0);
@@ -28,6 +29,11 @@ class Renderer
             add_action('wp_head', [$this, 'render_gcm_defaults'], 0);
             add_action('wp_head', [$this, 'render_gtm_script'], 1);
             add_action('wp_body_open', [$this, 'render_gtm_noscript']);
+        }
+
+        // Vždy vlož Clarity blokovaný skript do <head>, pokud je nakonfigurován (nezávisle na režimu)
+        if (! empty($this->settings['clarity_id'])) {
+            add_action('wp_head', [$this, 'render_clarity_script'], 1);
         }
     }
 
@@ -167,10 +173,17 @@ class Renderer
         if (! empty($this->settings['meta_pixel_id'])) {
             Services::metaPixel($this->settings['meta_pixel_id']);
         }
+    }
 
-        if (! empty($this->settings['clarity_id'])) {
-            Services::clarity($this->settings['clarity_id']);
+    /**
+     * Vloží Microsoft Clarity jako blokovaný skript (type="text/plain", data-category="analytics") do <head>.
+     */
+    public function render_clarity_script(): void
+    {
+        if (empty($this->settings['clarity_id'])) {
+            return;
         }
+        Services::clarity($this->settings['clarity_id']);
     }
 
     public function render_custom_category_scripts(): void
@@ -267,14 +280,11 @@ class Renderer
         wp_add_inline_style('ccm-cookieconsent-bundle', $custom_css);
     }
 
-    /**
-     * Early inline script: Google Consent Mode defaults (v2) + Clarity stub s default denied.
-     * Běží s prioritou 0, tj. před GTM/GA/Clarity.
-     */
     public function render_gcm_defaults(): void
     {
         $is_gtm = (($this->settings['mode'] ?? '') === 'gtm' && ! empty($this->settings['gtm_id']));
         $is_direct_ga4 = (($this->settings['mode'] ?? 'direct') === 'direct' && ! empty($this->settings['ga4_id']));
+        
         if (! $is_gtm && ! $is_direct_ga4) {
             return;
         }
@@ -294,17 +304,10 @@ class Renderer
                 security_storage: 'granted',
                 wait_for_update: 500
             });
-
-            // Clarity stub + default denied (v2)
-            (function () {
-                if (typeof window.clarity !== 'function') {
-                    window.clarity = function () { (window.clarity.q = window.clarity.q || []).push(arguments); };
-                }
-                try { window.clarity('consentv2', { analytics_storage: 'denied', ad_storage: 'denied' }); } catch (e) { }
-            })();
         </script>
         <?php
     }
+
 
     private function is_bot(): bool
     {

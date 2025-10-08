@@ -22,11 +22,6 @@ define( 'CCM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CCM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'CCM_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
-// Composer autoload (optional)
-$ccm_vendor = CCM_PLUGIN_DIR . 'vendor/autoload.php';
-if ( file_exists( $ccm_vendor ) ) {
-	require_once $ccm_vendor;
-}
 spl_autoload_register(
 	function ( $class ) {
 		if ( strpos( $class, 'CCM\\' ) !== 0 ) {
