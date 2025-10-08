@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const grantIf = (flag) => flag ? 'granted' : 'denied';
     const hasGtag = () => typeof gtag !== 'undefined';
     const hasDL = () => typeof dataLayer !== 'undefined';
-    const hasClarity = () => typeof clarity !== 'undefined';
     const hasFbq = () => typeof fbq !== 'undefined';
 
     function getAcceptedCategoriesArray() {
@@ -98,16 +97,6 @@ document.addEventListener('DOMContentLoaded', function () {
         dataLayer.push({ event: eventName, ...payload });
     }
 
-    function setClarityFromCategories() {
-        if (!hasClarity()) return;
-        try {
-            clarity('consentv2', {
-                analytics_storage: grantIf(accepted('analytics')),
-                ad_storage: grantIf(accepted('marketing'))
-            });
-        } catch (e) { /* noop */ }
-    }
-
     function setFbqFromCategories() {
         if (!hasFbq()) return;
         fbq('consent', accepted('marketing') ? 'grant' : 'revoke');
@@ -119,11 +108,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (hasGtag()) gtag('consent', 'update', consentUpdate);
 
         pushDataLayer('cookie_consent_update', { ...consentUpdate, timestamp: Date.now() });
-
-        setClarityFromCategories();
         setFbqFromCategories();
     }
-
 
     function initializeCookieConsent() {
 
