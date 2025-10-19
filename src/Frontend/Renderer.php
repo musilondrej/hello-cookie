@@ -79,7 +79,23 @@ class Renderer
 
     private function build_config_json(): string
     {
-        $lang = substr(get_locale(), 0, 2) ?: 'cs';
+        // Server-side language detection with WPML/Polylang support, fallback to get_locale()
+        $lang = '';
+        $wpml = apply_filters('wpml_current_language', null);
+        if (!empty($wpml)) {
+            $lang = substr((string) $wpml, 0, 2);
+        } elseif (defined('ICL_LANGUAGE_CODE') && ICL_LANGUAGE_CODE) {
+            $lang = substr((string) ICL_LANGUAGE_CODE, 0, 2);
+        } elseif (function_exists('pll_current_language')) {
+            $cur = (string) pll_current_language('slug');
+            $lang = substr($cur ?: get_locale(), 0, 2);
+        } else {
+            $lang = substr(get_locale(), 0, 2) ?: 'cs';
+        }
+        // Limit to provided translations
+        if (!in_array($lang, ['cs', 'en'], true)) {
+            $lang = 'cs';
+        }
         $policy_url = function_exists('get_privacy_policy_url') ? get_privacy_policy_url() : '#privacy-policy';
 
         $config = [

@@ -97,6 +97,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const hasDL = () => typeof dataLayer !== 'undefined';
     const hasFbq = () => typeof fbq !== 'undefined';
 
+    // Client-side language override from <html lang="...">
+    try {
+        const htmlLang = (document.documentElement.getAttribute('lang') || '').slice(0,2).toLowerCase();
+        const supported = CONFIG?.language?.translations ? Object.keys(CONFIG.language.translations) : [];
+        if (htmlLang && supported.includes(htmlLang)) {
+            CONFIG.language.default = htmlLang;
+        }
+    } catch(e) { /* ignore */ }
+
     function getAcceptedCategoriesArray() {
         const all = ['necessary', 'analytics', 'marketing', 'functionality'];
         return all.filter(cat => cat === 'necessary' || accepted(cat));

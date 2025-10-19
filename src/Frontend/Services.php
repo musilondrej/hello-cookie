@@ -15,7 +15,7 @@ class Services
     /** @var array<string,string> handle => noscript HTML (if needed) */
     private static $noscript_map = [];
 
-    /** @var array<string,bool> handles allowed to run before consent (e.g., cookieless GA4, Clarity init) */
+    /** @var array<string,bool> handles allowed to run before consent */
     private static $allow_map = [];
 
     /** @var array<string,array<string,string>> optional extra attributes for the <script> tag per handle */
@@ -48,7 +48,6 @@ class Services
 
         $category = self::$category_map[$handle] ?? 'analytics';
 
-        // Allowed pre-consent scripts
         if (!empty(self::$allow_map[$handle])) {
             if ($src === '' || $src === false) {
                 $code = self::$inline_map[$handle] ?? '';
@@ -60,7 +59,6 @@ class Services
             return $tag;
         }
 
-        // helper: build extra attributes
         $extra_attrs = '';
         if (!empty(self::$attr_map[$handle]) && is_array(self::$attr_map[$handle])) {
             foreach (self::$attr_map[$handle] as $k => $v) {
@@ -70,7 +68,6 @@ class Services
             }
         }
 
-        // Blocked inline scripts
         if ($src === '' || $src === false) {
             $code = self::$inline_map[$handle] ?? '';
             if ($code === '')
@@ -84,7 +81,6 @@ class Services
             );
         }
 
-        // Blocked external scripts
         return sprintf(
             '<script type="text/plain" data-category="%s" data-src="%s"%s></script>' . "\n",
             esc_attr($category),
@@ -99,13 +95,10 @@ class Services
             return;
 
         foreach (self::$noscript_map as $html) {
-            echo $html . "\n"; // trusted HTML
+            echo $html . "\n";
         }
     }
 
-    /**
-     * Google Analytics 4 (blocked until analytics consent is granted).
-     */
     public static function ga4(string $measurement_id): void
     {
         $id = trim($measurement_id);
@@ -131,9 +124,6 @@ class Services
         echo ob_get_clean();
     }
 
-    /**
-     * Meta Pixel (deferred until marketing consent is granted).
-     */
     public static function metaPixel(string $pixel_id): void
     {
         $id = trim($pixel_id);
@@ -153,9 +143,6 @@ class Services
         wp_enqueue_script($init);
     }
 
-    /**
-     * Microsoft Clarity (blocked until analytics consent).
-     */
     public static function clarity(string $project_id): void
     {
         $id = trim($project_id);
