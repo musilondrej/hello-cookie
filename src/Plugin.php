@@ -94,13 +94,7 @@ class Plugin
             'meta_pixel_id' => '',
             'clarity_id' => '',
             'gtm_id' => '',
-            'texts' => [
-                'title' => __('Používáme cookies', 'hellocookie'),
-                'description' => __('Tento web používá soubory cookie pro zlepšení uživatelského zážitku a analýzu návštěvnosti.', 'hellocookie'),
-                'accept_all' => __('Přijmout vše', 'hellocookie'),
-                'accept_necessary' => __('Pouze nezbytné', 'hellocookie'),
-                'show_preferences' => __('Nastavení', 'hellocookie')
-            ],
+            'texts' => [],
             'ui_layout' => 'box',
             'ui_position' => 'bottom right',
             'ui_transition' => 'slide',
