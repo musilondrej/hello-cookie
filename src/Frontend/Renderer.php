@@ -80,6 +80,7 @@ class Renderer
     private function build_config_json(): string
     {
         $lang = substr(get_locale(), 0, 2) ?: 'cs';
+        $policy_url = function_exists('get_privacy_policy_url') ? get_privacy_policy_url() : '#privacy-policy';
 
         $config = [
             'restUrl' => rest_url(),
@@ -101,36 +102,73 @@ class Renderer
                 'translations' => [
                     'cs' => [
                         'consentModal' => [
-                            'title' => $this->settings['texts']['title'] ?? '',
-                            'description' => $this->settings['texts']['description'] ?? '',
-                            'acceptAllBtn' => $this->settings['texts']['accept_all'] ?? __('Povolit vše', 'hellocookie'),
+                            'title' => $this->settings['texts']['title'] ?? __('Používáme soubory cookie', 'hellocookie'),
+                            'description' => $this->settings['texts']['description'] ?? sprintf(__('Používáme nezbytné soubory cookie, aby web správně fungoval. S Vaším souhlasem navíc používáme analytické a marketingové cookies, které nám pomáhají vylepšovat web a zobrazovat relevantní obsah. Své nastavení můžete kdykoli změnit v Nastavení cookies. <a href="%s" target="_blank" rel="noopener">Více o cookies</a>.', 'hellocookie'), esc_url($policy_url)),
+                            'acceptAllBtn' => $this->settings['texts']['accept_all'] ?? __('Přijmout vše', 'hellocookie'),
                             'acceptNecessaryBtn' => $this->settings['texts']['accept_necessary'] ?? __('Pouze nezbytné', 'hellocookie'),
                             'showPreferencesBtn' => $this->settings['texts']['show_preferences'] ?? __('Nastavení', 'hellocookie'),
                         ],
                         'preferencesModal' => [
                             'title' => $this->settings['texts']['preferences_title'] ?? __('Nastavení cookies', 'hellocookie'),
-                            'acceptAllBtn' => $this->settings['texts']['accept_all'] ?? __('Povolit vše', 'hellocookie'),
+                            'acceptAllBtn' => $this->settings['texts']['accept_all'] ?? __('Přijmout vše', 'hellocookie'),
                             'acceptNecessaryBtn' => $this->settings['texts']['accept_necessary'] ?? __('Pouze nezbytné', 'hellocookie'),
-                            'savePreferencesBtn' => $this->settings['texts']['save_preferences'] ?? __('Uložit nastavení', 'hellocookie'),
+                            'savePreferencesBtn' => $this->settings['texts']['save_preferences'] ?? __('Uložit a zavřít', 'hellocookie'),
                             'sections' => [
                                 [
                                     'title' => $this->settings['texts']['necessary_title'] ?? __('Nezbytné cookies', 'hellocookie'),
-                                    'description' => $this->settings['texts']['necessary_description'] ?? __('Tyto soubory cookie jsou nezbytné pro základní funkčnost webu.', 'hellocookie'),
+                                    'description' => $this->settings['texts']['necessary_description'] ?? __('Technické cookies potřebné pro chod webu (zobrazení stránky, zabezpečení, nastavení souhlasu). Nelze je vypnout.', 'hellocookie'),
                                     'linkedCategory' => 'necessary',
                                 ],
                                 [
                                     'title' => $this->settings['texts']['analytics_title'] ?? __('Analytické cookies', 'hellocookie'),
-                                    'description' => $this->settings['texts']['analytics_description'] ?? __('Pomáhají nám pochopit, jak návštěvníci používají náš web.', 'hellocookie'),
+                                    'description' => $this->settings['texts']['analytics_description'] ?? __('Pomáhají nám pochopit, jak web používáte (např. Google Analytics, Microsoft Clarity) a zlepšovat jeho funkce. Aktivujeme je pouze s Vaším souhlasem.', 'hellocookie'),
                                     'linkedCategory' => 'analytics',
                                 ],
                                 [
                                     'title' => $this->settings['texts']['marketing_title'] ?? __('Marketingové cookies', 'hellocookie'),
-                                    'description' => $this->settings['texts']['marketing_description'] ?? __('Používají se pro zobrazování relevantních reklam.', 'hellocookie'),
+                                    'description' => $this->settings['texts']['marketing_description'] ?? __('Umožňují zobrazovat personalizovaný obsah a reklamu (např. Meta Pixel). Aktivujeme je pouze s Vaším souhlasem.', 'hellocookie'),
                                     'linkedCategory' => 'marketing',
                                 ],
                                 [
                                     'title' => $this->settings['texts']['functionality_title'] ?? __('Funkční cookies', 'hellocookie'),
-                                    'description' => $this->settings['texts']['functionality_description'] ?? __('Umožňují pokročilé funkce webu.', 'hellocookie'),
+                                    'description' => $this->settings['texts']['functionality_description'] ?? __('Zlepšují uživatelský komfort (např. zapamatování preferencí). Aktivujeme je pouze s Vaším souhlasem.', 'hellocookie'),
+                                    'linkedCategory' => 'functionality',
+                                ],
+                            ],
+                        ],
+                    ],
+                    'en' => [
+                        'consentModal' => [
+                            'title' => __('We use cookies', 'hellocookie'),
+                            'description' => sprintf(__('We use essential cookies to make this site work. With your permission, we will also use analytics and marketing cookies to help us improve the site and show relevant content. You can change your preferences anytime in Cookie Settings. <a href="%s" target="_blank" rel="noopener">Learn more</a>.', 'hellocookie'), esc_url($policy_url)),
+                            'acceptAllBtn' => __('Accept all', 'hellocookie'),
+                            'acceptNecessaryBtn' => __('Only necessary', 'hellocookie'),
+                            'showPreferencesBtn' => __('Settings', 'hellocookie'),
+                        ],
+                        'preferencesModal' => [
+                            'title' => __('Cookie settings', 'hellocookie'),
+                            'acceptAllBtn' => __('Accept all', 'hellocookie'),
+                            'acceptNecessaryBtn' => __('Only necessary', 'hellocookie'),
+                            'savePreferencesBtn' => __('Save and close', 'hellocookie'),
+                            'sections' => [
+                                [
+                                    'title' => __('Essential cookies', 'hellocookie'),
+                                    'description' => __('Technical cookies required for the website to function (page display, security, consent settings). These cannot be disabled.', 'hellocookie'),
+                                    'linkedCategory' => 'necessary',
+                                ],
+                                [
+                                    'title' => __('Analytics cookies', 'hellocookie'),
+                                    'description' => __('Help us understand how you use the site (e.g., Google Analytics, Microsoft Clarity) so we can improve it. Enabled only with your consent.', 'hellocookie'),
+                                    'linkedCategory' => 'analytics',
+                                ],
+                                [
+                                    'title' => __('Marketing cookies', 'hellocookie'),
+                                    'description' => __('Allow us to show personalized content and ads (e.g., Meta Pixel). Enabled only with your consent.', 'hellocookie'),
+                                    'linkedCategory' => 'marketing',
+                                ],
+                                [
+                                    'title' => __('Functional cookies', 'hellocookie'),
+                                    'description' => __('Improve your experience (e.g., remember your preferences). Enabled only with your consent.', 'hellocookie'),
                                     'linkedCategory' => 'functionality',
                                 ],
                             ],
