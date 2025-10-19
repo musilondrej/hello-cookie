@@ -176,14 +176,16 @@ class Plugin
         $sql = "CREATE TABLE {$table} (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            consent_hash varchar(64) NOT NULL,
-            categories text NOT NULL,
-            version_hash varchar(64) DEFAULT '',
-            source enum('accept','change') NOT NULL DEFAULT 'accept',
+            consent_hash varchar(64) NOT NULL COMMENT 'HMAC-SHA256 hashed consent ID for pseudonymization',
+            categories text NOT NULL COMMENT 'JSON array of accepted categories',
+            version_hash varchar(64) DEFAULT '' COMMENT 'Plugin/config version for audit trail',
+            source enum('accept','change') NOT NULL DEFAULT 'accept' COMMENT 'How consent was given',
+            ip_hash varchar(64) DEFAULT NULL COMMENT 'Hashed IP for basic fraud prevention',
+            user_agent_hash varchar(64) DEFAULT NULL COMMENT 'Hashed UA for basic fraud prevention',
             PRIMARY KEY (id),
             KEY consent_hash (consent_hash),
             KEY created_at (created_at)
-        ) {$charset};";
+        ) {$charset} COMMENT='GDPR-compliant consent log with pseudonymized data';";
 
         require_once ABSPATH.'wp-admin/includes/upgrade.php';
         dbDelta($sql);
@@ -225,6 +227,16 @@ class Plugin
         }
 
         $consent_hash = hash_hmac('sha256', $consent_id, $salt);
+        
+        // Optional pseudonymized fraud prevention (GDPR-compliant)
+        $ip_hash = null;
+        $ua_hash = null;
+        if (!empty($_SERVER['REMOTE_ADDR'])) {
+            $ip_hash = hash_hmac('sha256', $_SERVER['REMOTE_ADDR'], $salt);
+        }
+        if (!empty($_SERVER['HTTP_USER_AGENT'])) {
+            $ua_hash = hash_hmac('sha256', $_SERVER['HTTP_USER_AGENT'], $salt);
+        }
 
         $result = $wpdb->insert(
             $table,
@@ -234,8 +246,10 @@ class Plugin
                 'categories' => wp_json_encode($categories),
                 'version_hash' => $version,
                 'source' => $source,
+                'ip_hash' => $ip_hash,
+                'user_agent_hash' => $ua_hash,
             ],
-            ['%s', '%s', '%s', '%s', '%s']
+            ['%s', '%s', '%s', '%s', '%s', '%s', '%s']
         );
 
         if ($result === false) {
