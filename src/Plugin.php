@@ -153,10 +153,7 @@ class Plugin
     {
         $route_args = [
             'methods' => 'POST',
-            'permission_callback' => function () {
-                $nonce = $_SERVER['HTTP_X_WP_NONCE'] ?? '';
-                return wp_verify_nonce($nonce, 'wp_rest');
-            },
+            'permission_callback' => '__return_true',
             'callback' => [self::class, 'handle_consent_rest'],
             'args' => [
                 'consent_id' => ['type' => 'string', 'required' => true],

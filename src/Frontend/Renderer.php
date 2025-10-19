@@ -100,7 +100,6 @@ class Renderer
 
         $config = [
             'restUrl' => rest_url(),
-            'nonce' => wp_create_nonce('wp_rest'),
             'revision' => '1.0',
             'mode' => !empty($this->settings['gtm_id']) ? 'gtm' : 'direct',
             'categoryScripts' => $this->settings['category_scripts'] ?? [],

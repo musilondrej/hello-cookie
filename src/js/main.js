@@ -124,8 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     source: source || 'accept'
                 }),
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': CONFIG.nonce
+                    'Content-Type': 'application/json'
                 }
             })
                 .then(response => response.json())
