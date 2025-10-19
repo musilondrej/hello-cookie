@@ -17,7 +17,7 @@ class Renderer
 
 
         if (($this->settings['mode'] ?? 'direct') === 'direct') {
-            if (! empty($this->settings['ga4_id'])) {
+            if (!empty($this->settings['ga4_id'])) {
                 add_action('wp_head', [$this, 'render_gcm_defaults'], 0);
             }
             add_action('wp_head', [$this, 'render_blocked_scripts'], 1);
@@ -25,21 +25,20 @@ class Renderer
 
         add_action('wp_head', [$this, 'render_custom_category_scripts'], 2);
 
-        if (($this->settings['mode'] ?? '') === 'gtm' && ! empty($this->settings['gtm_id'])) {
+        if (($this->settings['mode'] ?? '') === 'gtm' && !empty($this->settings['gtm_id'])) {
             add_action('wp_head', [$this, 'render_gcm_defaults'], 0);
             add_action('wp_head', [$this, 'render_gtm_script'], 1);
-            add_action('wp_body_open', [$this, 'render_gtm_noscript']);
         }
 
         // Vždy vlož Clarity blokovaný skript do <head>, pokud je nakonfigurován (nezávisle na režimu)
-        if (! empty($this->settings['clarity_id'])) {
+        if (!empty($this->settings['clarity_id'])) {
             add_action('wp_head', [$this, 'render_clarity_script'], 1);
         }
     }
 
     public function enqueue_scripts(): void
     {
-        if (! empty($this->settings['hide_from_bots']) && $this->is_bot()) {
+        if (!empty($this->settings['hide_from_bots']) && $this->is_bot()) {
             return;
         }
 
@@ -47,14 +46,14 @@ class Renderer
 
         wp_enqueue_style(
             'ccm-cookieconsent-bundle',
-            CCM_PLUGIN_URL.'assets/dist/ccm-cookieconsent-bundle.css',
+            CCM_PLUGIN_URL . 'assets/dist/ccm-cookieconsent-bundle.css',
             [],
             $ver
         );
 
         wp_enqueue_script(
             'ccm-cookieconsent-bundle',
-            CCM_PLUGIN_URL.'assets/dist/ccm-cookieconsent-bundle.js',
+            CCM_PLUGIN_URL . 'assets/dist/ccm-cookieconsent-bundle.js',
             [],
             $ver,
             false
@@ -69,8 +68,8 @@ class Renderer
         $base = defined('CCM_VERSION') ? (string) CCM_VERSION : '1.0.0';
 
         if (defined('CCM_PLUGIN_DIR')) {
-            $css = CCM_PLUGIN_DIR.'assets/dist/ccm-cookieconsent-bundle.css';
-            $js = CCM_PLUGIN_DIR.'assets/dist/ccm-cookieconsent-bundle.js';
+            $css = CCM_PLUGIN_DIR . 'assets/dist/ccm-cookieconsent-bundle.css';
+            $js = CCM_PLUGIN_DIR . 'assets/dist/ccm-cookieconsent-bundle.js';
             $mtime = max(@filemtime($css) ?: 0, @filemtime($js) ?: 0);
             return $mtime ? (string) $mtime : $base;
         }
@@ -86,7 +85,7 @@ class Renderer
             'restUrl' => rest_url(),
             'nonce' => wp_create_nonce('wp_rest'),
             'revision' => '1.0',
-            'mode' => ! empty($this->settings['gtm_id']) ? 'gtm' : 'direct',
+            'mode' => !empty($this->settings['gtm_id']) ? 'gtm' : 'direct',
             'categoryScripts' => $this->settings['category_scripts'] ?? [],
             'cookiesToErase' => $this->settings['cookies_to_erase'] ?? '_ga,_gid,_gat,_gcl_,__utm,_fbp,fr,_uet,_ttp,_pin_',
             'disablePageInteraction' => (bool) ($this->settings['force_consent'] ?? false),
@@ -153,12 +152,12 @@ class Renderer
             ],
         ];
 
-    $js_config = 'window.CCM_CONFIG = '.wp_json_encode($config).';';
+        $js_config = 'window.CCM_CONFIG = ' . wp_json_encode($config) . ';';
 
-        if (! empty($this->settings['custom_css'])) {
+        if (!empty($this->settings['custom_css'])) {
             $custom_css = (string) $this->settings['custom_css'];
             // Vkládáme pouze obsah, bez <style> wrapperu
-            $js_config .= "\n".'if(typeof document !== "undefined"){var s=document.createElement("style");s.textContent='.wp_json_encode($custom_css).';document.head.appendChild(s);}';
+            $js_config .= "\n" . 'if(typeof document !== "undefined"){var s=document.createElement("style");s.textContent=' . wp_json_encode($custom_css) . ';document.head.appendChild(s);}';
         }
 
         return $js_config;
@@ -166,11 +165,11 @@ class Renderer
 
     public function render_blocked_scripts(): void
     {
-        if (! empty($this->settings['ga4_id'])) {
+        if (!empty($this->settings['ga4_id'])) {
             Services::ga4($this->settings['ga4_id']);
         }
 
-        if (! empty($this->settings['meta_pixel_id'])) {
+        if (!empty($this->settings['meta_pixel_id'])) {
             Services::metaPixel($this->settings['meta_pixel_id']);
         }
     }
@@ -189,7 +188,7 @@ class Renderer
     public function render_custom_category_scripts(): void
     {
         $cat_scripts = $this->settings['category_scripts'] ?? [];
-        if (! is_array($cat_scripts) || empty($cat_scripts)) {
+        if (!is_array($cat_scripts) || empty($cat_scripts)) {
             return;
         }
 
@@ -200,8 +199,14 @@ class Renderer
                 continue;
             }
             $safe = $this->escape_script_text($code);
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- vlastní JS je očištěn od <script> a escapován pro </script
-            echo '<script type="text/plain" data-category="'.esc_attr($cat).'">'.$safe."</script>\n";
+            
+            ob_start();
+            ?>
+            <script type="text/plain" data-category="<?php echo esc_attr($cat); ?>">
+                <?php echo $safe; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- vlastní JS je očištěn od <script> a escapován pro </script ?>
+            </script>
+            <?php
+            echo ob_get_clean();
         }
     }
 
@@ -215,19 +220,21 @@ class Renderer
     public function render_gtm_script(): void
     {
         $gtm_id = (string) ($this->settings['gtm_id'] ?? '');
+        if ($gtm_id === '')
+            return;
         ?>
-        <!-- Google Tag Manager -->
-        <script>
-            (function (w, d, s, l, i) {
-                w[l] = w[l] || [];
-                w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-                var f = d.getElementsByTagName(s)[0],
-                    j = d.createElement(s), dl = l !== 'dataLayer' ? '&l=' + l : '';
-                j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                f.parentNode.insertBefore(j, f);
-            })(window, document, 'script', 'dataLayer', '<?php echo esc_js($gtm_id); ?>');
+
+
+        <script type="text/plain" data-category="analytics">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){ dataLayer.push(arguments); } window.gtag = window.gtag || gtag;
+            
+            gtag('consent','update',{ analytics_storage:'granted' });
+            window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
         </script>
-        <!-- End Google Tag Manager -->
+        
+        <script type="text/plain" data-category="analytics" async
+            data-src="https://www.googletagmanager.com/gtm.js?id=<?php echo esc_attr($gtm_id); ?>&l=dataLayer"></script>
         <?php
     }
 
@@ -250,7 +257,7 @@ class Renderer
         $colors = is_array($this->settings['colors'] ?? null) ? $this->settings['colors'] : [];
         $defaults = ['bg' => '#ffffff', 'text' => '#333333', 'accent' => '#007cba'];
 
-        if (! $colors) {
+        if (!$colors) {
             return;
         }
 
@@ -258,7 +265,6 @@ class Renderer
         $text = sanitize_hex_color($colors['text'] ?? '') ?: $defaults['text'];
         $accent = sanitize_hex_color($colors['accent'] ?? '') ?: $defaults['accent'];
 
-        // Pokud jsou stejné jako default, CSS nevkládej
         if ($bg === $defaults['bg'] && $text === $defaults['text'] && $accent === $defaults['accent']) {
             return;
         }
@@ -282,10 +288,10 @@ class Renderer
 
     public function render_gcm_defaults(): void
     {
-        $is_gtm = (($this->settings['mode'] ?? '') === 'gtm' && ! empty($this->settings['gtm_id']));
-        $is_direct_ga4 = (($this->settings['mode'] ?? 'direct') === 'direct' && ! empty($this->settings['ga4_id']));
-        
-        if (! $is_gtm && ! $is_direct_ga4) {
+        $is_gtm = (($this->settings['mode'] ?? '') === 'gtm' && !empty($this->settings['gtm_id']));
+        $is_direct_ga4 = (($this->settings['mode'] ?? 'direct') === 'direct' && !empty($this->settings['ga4_id']));
+
+        if (!$is_gtm && !$is_direct_ga4) {
             return;
         }
         ?>
@@ -294,15 +300,13 @@ class Renderer
             function gtag() { window.dataLayer.push(arguments); }
             window.gtag = window.gtag || gtag;
 
-            // Consent Mode v2 – default denied
             gtag('consent', 'default', {
                 ad_storage: 'denied',
                 analytics_storage: 'denied',
                 ad_user_data: 'denied',
                 ad_personalization: 'denied',
-                functionality_storage: 'granted',
-                security_storage: 'granted',
-                wait_for_update: 500
+                functionality_storage: 'denied',
+                security_storage: 'granted'
             });
         </script>
         <?php
